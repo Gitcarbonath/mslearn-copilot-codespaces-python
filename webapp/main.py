@@ -1,5 +1,6 @@
 import os
 import base64
+import hashlib
 from typing import Union
 from os.path import dirname, abspath, join
 from fastapi import FastAPI
@@ -16,6 +17,10 @@ app.mount("/ui", StaticFiles(directory=static_path), name="ui")
 
 class Body(BaseModel):
     length: Union[int, None] = 20
+
+
+class Text(BaseModel):
+    text: str
 
 
 @app.get('/')
@@ -35,3 +40,9 @@ def generate(body: Body):
     """
     string = base64.b64encode(os.urandom(64))[:body.length].decode('utf-8')
     return {'token': string}
+
+
+@app.post('/checksum')
+def checksum(body: Text):
+    digest = hashlib.sha256(body.text.encode('utf-8')).hexdigest()
+    return {'checksum': digest}
